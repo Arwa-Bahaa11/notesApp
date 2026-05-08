@@ -11,7 +11,7 @@ class LoginCubit extends Cubit<LoginState> {
     emit(LoginLoading());
     try {
       await _repository.login(email: email, password: password);
-      emit(LoginSuccess("تم تسجيل الدخول بنجاح"));
+      emit(LoginSuccess("Login successful"));
     } catch (e) {
       emit(LoginError(e.toString()));
     }

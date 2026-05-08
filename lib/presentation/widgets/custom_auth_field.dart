@@ -7,6 +7,7 @@ class CustomAuthField extends StatelessWidget {
   final bool isPassword;
   final Widget? suffixIcon;
   final TextEditingController? controller;
+  final String? Function(String?)? validator;
 
   const CustomAuthField({
     super.key,
@@ -16,6 +17,7 @@ class CustomAuthField extends StatelessWidget {
     this.isPassword = false,
     this.suffixIcon,
     this.controller,
+    this.validator,
   });
 
   @override
@@ -31,6 +33,7 @@ class CustomAuthField extends StatelessWidget {
         TextFormField(
           controller: controller,
           obscureText: isPassword,
+          validator: validator,
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: Icon(prefixIcon, color: Colors.grey[600]),

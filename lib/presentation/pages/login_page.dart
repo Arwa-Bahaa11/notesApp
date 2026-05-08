@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:notes/core/constants/app_colors.dart';
 import 'package:notes/core/utils/app_validator.dart';
+import 'package:notes/presentation/pages/notes_page.dart';
 import 'package:notes/presentation/pages/register_page.dart';
 import '../cubits/login/login_cubit.dart';
 import '../cubits/login/login_state.dart';
@@ -26,25 +27,23 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Decorative background element
           Positioned(
             top: -50,
             right: -50,
             child: CircleAvatar(
               radius: 100,
-              backgroundColor:AppColors.primaryColor.withValues(alpha:0.07),
+              backgroundColor: AppColors.primaryColor.withValues(alpha: 0.07),
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: SingleChildScrollView(
               child: Form(
-                key: _formKey, // Form key wraps the entire column now
+                key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 100),
-                    // Logo and Branding
                     Center(
                       child: Column(
                         children: [
@@ -56,19 +55,18 @@ class _LoginPageState extends State<LoginPage> {
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1.2,
-                              color:AppColors.primaryColor,
+                              color: AppColors.primaryColor,
                             ),
                           ),
                           Text(
                             "Organize your thoughts, Ace your exams.",
-                            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                            style: TextStyle(
+                                color: Colors.grey[600], fontSize: 14),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 60),
-
-                    // Input Fields with Validators
                     CustomAuthField(
                       label: "Email",
                       hint: "student@university.edu",
@@ -85,13 +83,17 @@ class _LoginPageState extends State<LoginPage> {
                       controller: passwordController,
                       validator: AppValidator.validatePassword,
                     ),
-
                     const SizedBox(height: 40),
-
-                    // Logic & State Management
                     BlocConsumer<LoginCubit, LoginState>(
                       listener: (context, state) {
-                        if (state is LoginError) {
+                        if (state is LoginSuccess) {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const NotesPage()),
+                            (route) => false,
+                          );
+                        } else if (state is LoginError) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(state.error),
@@ -104,12 +106,12 @@ class _LoginPageState extends State<LoginPage> {
                       },
                       builder: (context, state) {
                         if (state is LoginLoading) {
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                              child: CircularProgressIndicator());
                         }
                         return CustomMainButton(
                           text: "Login",
                           onPressed: () {
-                            // TRIGGERS VALIDATION
                             if (_formKey.currentState!.validate()) {
                               context.read<LoginCubit>().login(
                                     emailController.text,
@@ -120,9 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                         );
                       },
                     ),
-
                     const SizedBox(height: 24),
-                    // Navigation to Register
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

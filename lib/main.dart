@@ -15,8 +15,8 @@ void main() {
       enabled: !kReleaseMode,
       builder: (context) => MultiBlocProvider( // ← changed
         providers: [
-          BlocProvider(create: (_) => LoginCubit(authRepo)),   // ← changed
-          BlocProvider(create: (_) => RegisterCubit(authRepo)), // ← changed
+          BlocProvider(create: (_) => LoginCubit(authRepo)),   
+          BlocProvider(create: (_) => RegisterCubit(authRepo)),
         ],
         child: const TarteebApp(),
       ),

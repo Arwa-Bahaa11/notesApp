@@ -6,7 +6,7 @@ import '../../core/constants/api_constants.dart';
 class AuthRepository {
   final Dio _dio = ApiClient.instance;
 
-  // دالة التسجيل
+  
   Future<UserModel> register({required String name, required String email, required String password}) async {
     try {
       final response = await _dio.post(
@@ -15,11 +15,10 @@ class AuthRepository {
       );
       return UserModel.fromJson(response.data);
     } on DioException catch (e) {
-      throw e.response?.data['message'] ?? "خطأ في عملية التسجيل";
+      throw e.response?.data['message'] ?? "Registeration failed";
     }
   }
 
-  // دالة تسجيل الدخول
   Future<UserModel> login({required String email, required String password}) async {
     try {
       final response = await _dio.post(
@@ -28,7 +27,7 @@ class AuthRepository {
       );
       return UserModel.fromJson(response.data);
     } on DioException catch (e) {
-      throw e.response?.data['message'] ?? "البريد أو كلمة المرور خاطئة";
+      throw e.response?.data['message'] ?? "Email or Password incorrect";
     }
   }
 }

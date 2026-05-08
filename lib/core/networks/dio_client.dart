@@ -1,53 +1,68 @@
 import 'package:dio/dio.dart';
 import '../constants/api_constants.dart';
+import '../utils/local_storage.dart';
 
 class ApiClient {
-  // 1. إنشاء نسخة Singleton من Dio لضمان استهلاك أقل للذاكرة
+  // جعل الـ Dio متغير خاص
   static final Dio _dio = Dio(
     BaseOptions(
-      // العنوان الرئيسي للسيرفر
       baseUrl: ApiConstants.baseUrl,
-      
-      // وقت الانتظار قبل ما الطلب يفشل (15 ثانية)
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),
-      
-      // إعدادات الـ Headers الأساسية
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      
-      // دي أهم حتة: بتخلي الـ Dio يرمي Exception لو الكود مش 200 أو 201
-      // وده بيخلي الـ Catch اللي في الـ Repository يشتغل صح
-      validateStatus: (status) => status != null && status >= 200 && status < 300,
+      // السماح بقراءة الردود حتى لو كانت حالات خطأ (مثل 400 أو 401)
+      // لكي نتمكن من عرض رسالة الخطأ القادمة من السيرفر
+      validateStatus: (status) => status != null && status < 500,
     ),
-  )..interceptors.add(_LoggingInterceptor()); // إضافة الـ Logger لمراقبة الطلبات
+  )..interceptors.addAll([
+      _AuthInterceptor(),
+      _LoggingInterceptor(),
+    ]);
 
-  // Getter للوصول لنسخة الـ Dio من أي مكان
   static Dio get instance => _dio;
 }
 
-// 2. كلاس الـ Interceptor لمراقبة الـ Requests والـ Responses في الـ Console
+class _AuthInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    final String? token = LocalStorage.getToken();
+
+    // تأكدي أن الـ Endpoints الخاصة بالـ Auth لا تأخذ توكن قديم أو فارغ
+    if (token != null && token.isNotEmpty) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
+
+    return handler.next(options); // استخدام handler.next أفضل للمتابعة
+  }
+}
+
 class _LoggingInterceptor extends Interceptor {
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    print('🔵 REQUEST [${options.method}] => PATH: ${options.path}');
-    print('📦 DATA: ${options.data}');
-    super.onRequest(options, handler);
+    print('🚀 REQUEST [${options.method}] => PATH: ${options.path}');
+    // طباعة البيانات المرسلة للتأكد من أنها ليست null
+    print('Body Data: ${options.data}');
+    return handler.next(options);
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    print('🟢 RESPONSE [${response.statusCode}] => PATH: ${response.requestOptions.path}');
-    print('📨 DATA: ${response.data}');
-    super.onResponse(response, handler);
+    print(
+        '✅ RESPONSE [${response.statusCode}] => PATH: ${response.requestOptions.path}');
+    // طباعة الرد القادم للتأكد من وصول البيانات
+    print('Response Data: ${response.data}');
+    return handler.next(response);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    print('🔴 ERROR [${err.response?.statusCode}] => MESSAGE: ${err.message}');
-    print('📋 ERROR DATA: ${err.response?.data}');
-    super.onError(err, handler);
+    print(
+        '❌ ERROR [${err.response?.statusCode}] => PATH: ${err.requestOptions.path}');
+    print('ERROR MESSAGE: ${err.message}');
+    print('ERROR DATA: ${err.response?.data}');
+    return handler.next(err);
   }
 }

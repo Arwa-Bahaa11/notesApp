@@ -7,7 +7,7 @@ import 'package:notes/features/notes/presentation/cubit/notes_state.dart';
 
 class NoteDraftSheet extends StatefulWidget {
   final bool isEdit;
-  final Note? note; // ✅ Note? مش dynamic
+  final Note? note; 
 
   const NoteDraftSheet({super.key, this.isEdit = false, this.note});
 
@@ -46,7 +46,7 @@ class _NoteDraftSheetState extends State<NoteDraftSheet> {
       maxChildSize: 0.95,
       builder: (_, scrollController) {
         return BlocListener<NotesCubit, NotesState>(
-          // ✅ واحد بدل MultiBlocListener
+          
           listener: (context, state) {
             if (state is NoteAddSuccess) {
               Navigator.pop(context);
@@ -113,14 +113,14 @@ class _NoteDraftSheetState extends State<NoteDraftSheet> {
                               onPressed: () {
                                 if (_formKey.currentState!.validate()) {
                                   if (widget.isEdit) {
-                                    // ✅ NotesCubit بدل ManageNoteCubit
+                                    
                                     context.read<NotesCubit>().editNote(
                                           widget.note!.id,
                                           subjectController.text,
                                           bodyController.text,
                                         );
                                   } else {
-                                    // ✅ NotesCubit بدل AddNoteCubit
+                                    
                                     context.read<NotesCubit>().addNote(
                                           subjectController.text,
                                           bodyController.text,

@@ -12,7 +12,7 @@ class NotesRemoteDatasource {
           .map((e) => NoteModel.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      throw "فشل تحميل الملحوظات";
+      throw "Failed to load notes. Please check your connection.";
     }
   }
 
@@ -27,7 +27,7 @@ class NotesRemoteDatasource {
       );
       return NoteModel.fromJson(response.data);
     } catch (e) {
-      throw "فشل إضافة الملحوظة";
+      throw "Failed to add note. Please try again.";
     }
   }
 
@@ -43,7 +43,7 @@ class NotesRemoteDatasource {
       );
       return NoteModel.fromJson(response.data);
     } catch (e) {
-      throw "فشل تعديل الملحوظة";
+      throw "Failed to update note.";
     }
   }
 
@@ -51,7 +51,7 @@ class NotesRemoteDatasource {
     try {
       await _dio.delete('/notes/$id');
     } catch (e) {
-      throw "فشل حذف الملحوظة";
+      throw "Failed to delete note.";
     }
   }
 }

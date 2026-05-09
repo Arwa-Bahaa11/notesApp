@@ -56,6 +56,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   bloc_test: ^9.1.7     # Handles state streams for your Login/Notes Cubits
   mocktail: ^1.0.4
+  http_mock_adapter: ^0.6.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

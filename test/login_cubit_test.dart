@@ -1,61 +1,123 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:notes/presentation/cubits/login/login_cubit.dart';
-import 'package:notes/presentation/cubits/login/login_state.dart';
-import 'package:notes/data/repo/auth_repo.dart';
-import 'package:notes/data/models/user_model.dart';
+import 'package:notes/features/auth/domain/usecases/login_usecase.dart';
+import 'package:notes/features/auth/domain/usecases/register_usecase.dart';
+import 'package:notes/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:notes/features/auth/presentation/cubit/auth_state.dart';
 
-class MockAuthRepository extends Mock implements AuthRepository {}
+class MockLoginUsecase extends Mock implements LoginUsecase {}
+class MockRegisterUsecase extends Mock implements RegisterUsecase {}
 
 void main() {
-  late LoginCubit loginCubit;
-  late MockAuthRepository mockRepo;
+  late AuthCubit authCubit;
+  late MockLoginUsecase mockLoginUsecase;
+  late MockRegisterUsecase mockRegisterUsecase;
 
   setUp(() {
-    mockRepo = MockAuthRepository();
-    loginCubit = LoginCubit(mockRepo);
+    mockLoginUsecase = MockLoginUsecase();
+    mockRegisterUsecase = MockRegisterUsecase();
+
+    authCubit = AuthCubit(
+      loginUsecase: mockLoginUsecase,
+      registerUsecase: mockRegisterUsecase,
+    );
   });
 
-  group('LoginCubit Unit Tests', () {
-    final mockUser = UserModel(id: 1, name: 'Habiba', email: 'h@test.com', token: '');
+  tearDown(() => authCubit.close());
 
-    test('Initial state should be LoginInitial', () {
-      expect(loginCubit.state, isA<LoginInitial>());
+  // ─────────────────────────────────────────
+  group('AuthCubit - Login Tests', () {
+    const tEmail = 'h@test.com';
+    const tPassword = '123456';
+
+    test('Initial state should be AuthInitial', () {
+      expect(authCubit.state, isA<AuthInitial>());
     });
 
-    blocTest<LoginCubit, LoginState>(
-      'emits [Loading, Success] when login is successful',
+    blocTest<AuthCubit, AuthState>(
+      'emits [Loading, Success] when login succeeds',
       build: () {
-        final Future<UserModel> successResponse = Future.value(mockUser);
-
-        when(() => mockRepo.login(
+        when(() => mockLoginUsecase(
           email: any(named: 'email'),
           password: any(named: 'password'),
-        )).thenAnswer((_) => successResponse);
-
-        return loginCubit;
+        )).thenAnswer((_) async => Future.value());
+        return authCubit;
       },
-      act: (cubit) => cubit.login('h@test.com', '123456'),
+      act: (cubit) => cubit.login(tEmail, tPassword),
       expect: () => [
-        isA<LoginLoading>(),
-        isA<LoginSuccess>(),
+        isA<AuthLoading>(),
+        isA<AuthSuccess>(),
       ],
+      verify: (_) {
+        verify(() => mockLoginUsecase(
+          email: tEmail,
+          password: tPassword,
+        )).called(1);
+      },
     );
-    blocTest<LoginCubit, LoginState>(
+
+    blocTest<AuthCubit, AuthState>(
       'emits [Loading, Error] when login fails',
       build: () {
-        when(() => mockRepo.login(
-            email: 'h@test.com',
-            password: 'wrong'
+        when(() => mockLoginUsecase(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
         )).thenThrow(Exception('Login Failed'));
-
-        return loginCubit;
+        return authCubit;
       },
-      act: (cubit) => cubit.login('h@test.com', 'wrong'),
+      act: (cubit) => cubit.login(tEmail, tPassword),
       expect: () => [
-        isA<LoginLoading>(),
-        isA<LoginError>(),
+        isA<AuthLoading>(),
+        isA<AuthError>(),
+      ],
+    );
+  });
+
+  // ─────────────────────────────────────────
+  group('AuthCubit - Register Tests', () {
+    const tName = 'Habiba';
+    const tEmail = 'h@test.com';
+    const tPassword = '123456';
+
+    blocTest<AuthCubit, AuthState>(
+      'emits [Loading, Success] when register succeeds',
+      build: () {
+        when(() => mockRegisterUsecase(
+          name: any(named: 'name'),
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        )).thenAnswer((_) async => Future.value());
+        return authCubit;
+      },
+      act: (cubit) => cubit.register(tName, tEmail, tPassword),
+      expect: () => [
+        isA<AuthLoading>(),
+        isA<AuthSuccess>(),
+      ],
+      verify: (_) {
+        verify(() => mockRegisterUsecase(
+          name: tName,
+          email: tEmail,
+          password: tPassword,
+        )).called(1);
+      },
+    );
+
+    blocTest<AuthCubit, AuthState>(
+      'emits [Loading, Error] when register fails',
+      build: () {
+        when(() => mockRegisterUsecase(
+          name: any(named: 'name'),
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        )).thenThrow(Exception('Register Failed'));
+        return authCubit;
+      },
+      act: (cubit) => cubit.register(tName, tEmail, tPassword),
+      expect: () => [
+        isA<AuthLoading>(),
+        isA<AuthError>(),
       ],
     );
   });

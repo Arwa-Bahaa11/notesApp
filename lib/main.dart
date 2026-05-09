@@ -3,34 +3,64 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:notes/core/utils/local_storage.dart';
-import 'package:notes/data/repo/note_repository.dart';
-import 'package:notes/presentation/cubits/notes/add_note/add_note_cubit.dart';
-import 'package:notes/presentation/cubits/notes/get_notes/get_notes_cubit.dart';
-import 'package:notes/presentation/cubits/notes/manage_note/manage_note_cubit.dart';
-import 'presentation/cubits/login/login_cubit.dart';
-import 'presentation/cubits/register/register_cubit.dart';
-import 'presentation/pages/login_page.dart';
-import 'package:notes/data/repo/auth_repo.dart';
+import 'package:notes/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:notes/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:notes/features/auth/domain/usecases/login_usecase.dart';
+import 'package:notes/features/auth/domain/usecases/register_usecase.dart';
+import 'package:notes/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:notes/features/auth/presentation/pages/login_page.dart';
+import 'package:notes/features/notes/data/datasources/notes_remote_datasource.dart';
+import 'package:notes/features/notes/data/repositories/notes_repository_impl.dart';
+import 'package:notes/features/notes/domain/usecases/notes_usecases.dart';
+import 'package:notes/features/notes/presentation/cubit/notes_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LocalStorage.init();
-
-  final authRepo = AuthRepository();
-  final noteRepo = NoteRepository();
 
   runApp(
     DevicePreview(
       enabled: !kReleaseMode,
       builder: (context) => MultiBlocProvider(
         providers: [
-          BlocProvider(create: (_) => LoginCubit(authRepo)),
-          BlocProvider(create: (_) => RegisterCubit(authRepo)),
-          BlocProvider(create: (_) => GetNotesCubit(noteRepo)),
-          BlocProvider(create: (_) => AddNoteCubit(noteRepo)),
-          BlocProvider(create: (_) => ManageNoteCubit(noteRepo)),
-          BlocProvider(create: (_) => LoginCubit(authRepo)),
-          BlocProvider(create: (_) => RegisterCubit(authRepo)),
+          BlocProvider(
+            create: (_) => AuthCubit(
+              loginUsecase: LoginUsecase(
+                repository: AuthRepositoryImpl(
+                  remoteDatasource: AuthRemoteDatasource(),
+                ),
+              ),
+              registerUsecase: RegisterUsecase(
+                repository: AuthRepositoryImpl(
+                  remoteDatasource: AuthRemoteDatasource(),
+                ),
+              ),
+            ),
+          ),
+          BlocProvider(
+            create: (_) => NotesCubit(
+              getNotesUsecase: GetNotesUsecase(
+                repository: NotesRepositoryImpl(
+                  remoteDatasource: NotesRemoteDatasource(),
+                ),
+              ),
+              addNoteUsecase: AddNoteUsecase(
+                repository: NotesRepositoryImpl(
+                  remoteDatasource: NotesRemoteDatasource(),
+                ),
+              ),
+              editNoteUsecase: EditNoteUsecase(
+                repository: NotesRepositoryImpl(
+                  remoteDatasource: NotesRemoteDatasource(),
+                ),
+              ),
+              deleteNoteUsecase: DeleteNoteUsecase(
+                repository: NotesRepositoryImpl(
+                  remoteDatasource: NotesRemoteDatasource(),
+                ),
+              ),
+            ),
+          ),
         ],
         child: const TarteebApp(),
       ),

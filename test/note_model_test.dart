@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:notes/data/models/note_model.dart';
+import 'package:notes/features/notes/data/models/note_model.dart';
 
 void main() {
   group('NoteModel', () {
